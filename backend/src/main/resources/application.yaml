@@ -1,0 +1,38 @@
+#配置服务器
+server:
+  port: 8080
+
+#配置spring框架
+spring:
+  application:
+    name: houserental #应用名称
+  mail:
+    host: smtp.qq.com           # 邮箱SMTP服务器地址（QQ邮箱示例，可替换为其他邮箱）
+    port: 587                   # SMTP端口
+    username: 1728395670@qq.com # 发件人邮箱地址（请替换为真实邮箱）
+    password: dkurzjbsiojwcjda    # 邮箱授权码（非登录密码，请替换为真实授权码）
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+            required: true
+  servlet:
+    multipart:
+      max-file-size: 5MB        # 单个文件最大5MB
+      max-request-size: 20MB    # 单次请求最大20MB
+  datasource: #数据源
+    druid: #druid数据源
+      driver-class-name: com.mysql.cj.jdbc.Driver #驱动程序
+      url: "jdbc:mysql://localhost:3306/houserental?serverTimezone=Asia/Shanghai&useUnicode=true&characterEncoding=utf8&useSSL=false&allowPublicKeyRetrieval=true"
+      username: root  #用户名
+      password: 123456  #密码
+# 文件上传目录
+file:
+  upload-dir: D:/upload
+
+mybatis-plus:
+  configuration:
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl #日志实现类
+    map-underscore-to-camel-case: true #下划线转驼峰

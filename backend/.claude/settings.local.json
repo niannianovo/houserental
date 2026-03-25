@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(wc -l /d/IDEA-works/HouseRentalSystem/HouseRentalSystem/src/main/java/com/example/service/Impl/*.java)",
+      "Bash(xargs grep:*)",
+      "Bash(grep -i -E '\\\\.\\(html|js|jsx|tsx|vue|freemarker|ftl\\)$')",
+      "Bash(javap -p \"D:/IDEA-works/HouseRentalSystem/HouseRentalSystem/target/classes/com/example/controller/UserController.class\")",
+      "Bash(find D:/IDEA-works/HouseRentalSystem/HouseRentalSystem -type f \\\\\\(-name *.html -o -name *.js -o -name *.vue -o -name *.ts -o -name *.tsx \\\\\\))",
+      "Bash(find D:/IDEA-works/HouseRentalSystem/HouseRentalSystem/src -type f \\\\\\(-name *.html -o -name *.js -o -name *.vue -o -name *.ts -o -name *.tsx -o -name *.jsx \\\\\\))",
+      "Bash(grep -r \"PostMapping\\\\|GetMapping\\\\|PutMapping\\\\|DeleteMapping\" D:/IDEA-works/HouseRentalSystem/HouseRentalSystem/src/main/java/com/example/controller --include=*.java)"
+    ]
+  }
+}
