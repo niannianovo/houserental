@@ -1,6 +1,7 @@
 package com.example.entity;
 
 import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
@@ -19,4 +20,9 @@ public class Conversation {
     private String lastMessage;
     private Date lastMessageTime;
     private Date createTime;
+
+    @TableField(exist = false)
+    private String user1Nickname;
+    @TableField(exist = false)
+    private String user2Nickname;
 }

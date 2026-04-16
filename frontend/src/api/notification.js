@@ -19,3 +19,8 @@ export function markAsRead(id, userId) {
 export function markAllAsRead(userId) {
     return httpInstance({ url: '/notification/read-all', method: 'put', params: { userId } })
 }
+
+// 获取已发布的系统公告
+export function getAnnouncements(page = 1, size = 10) {
+    return httpInstance({ url: '/announcement/list', method: 'get', params: { status: 1, page, size } })
+}

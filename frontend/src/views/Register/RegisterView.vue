@@ -13,6 +13,10 @@
                     <el-input v-model="registerForm.account" placeholder="账号（4-20位，字母开头，字母数字下划线）" size="large"
                         :prefix-icon="User" />
                 </el-form-item>
+                <el-form-item prop="nickname">
+                    <el-input v-model="registerForm.nickname" placeholder="昵称（2-20位，不可重复）" size="large"
+                        :prefix-icon="User" />
+                </el-form-item>
                 <el-form-item prop="password">
                     <el-input v-model="registerForm.password" placeholder="密码（8-20位，含字母+数字+特殊字符）" type="password"
                         size="large" :prefix-icon="Lock" show-password />
@@ -64,6 +68,7 @@ let countdownTimer = null
 
 const registerForm = ref({
     account: '',
+    nickname: '',
     password: '',
     confirmPassword: '',
     email: '',
@@ -106,8 +111,19 @@ const validateConfirmPassword = (rule, value, callback) => {
     }
 }
 
+const validateNickname = (rule, value, callback) => {
+    if (!value) {
+        callback(new Error('昵称不能为空'))
+    } else if (value.length < 2 || value.length > 20) {
+        callback(new Error('昵称长度必须在2-20个字符之间'))
+    } else {
+        callback()
+    }
+}
+
 const rules = {
     account: [{ validator: validateAccount, trigger: 'blur' }],
+    nickname: [{ validator: validateNickname, trigger: 'blur' }],
     password: [{ validator: validatePassword, trigger: 'blur' }],
     confirmPassword: [
         { required: true, message: '请确认密码', trigger: 'blur' },
@@ -166,6 +182,7 @@ const doRegister = async () => {
             try {
                 await register({
                     account: registerForm.value.account,
+                    nickname: registerForm.value.nickname,
                     password: registerForm.value.password,
                     email: registerForm.value.email,
                     verifyCode: registerForm.value.verifyCode

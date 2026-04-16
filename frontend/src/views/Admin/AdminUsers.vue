@@ -16,9 +16,6 @@
                 <el-table-column prop="nickname" label="昵称" width="120" />
                 <el-table-column prop="phone" label="手机号" width="130" />
                 <el-table-column prop="email" label="邮箱" show-overflow-tooltip min-width="160" />
-                <el-table-column label="角色" width="80">
-                    <template #default="{ row }">{{ row.currentRole === 1 ? '房东' : '租客' }}</template>
-                </el-table-column>
                 <el-table-column label="状态" width="80">
                     <template #default="{ row }">
                         <el-tag :type="row.status === 1 ? 'danger' : 'success'" size="small">
@@ -76,8 +73,11 @@ const loadUsers = async () => {
 const handleSearch = () => { currentPage.value = 1; loadUsers() }
 
 const handleDisable = async (id) => {
-    try { await disableUser(id); ElMessage.success({ message: '已禁用', duration: 2000 }); loadUsers() }
-    catch (e) { console.log('操作失败', e) }
+    try {
+        const res = await disableUser(id)
+        ElMessage.success({ message: res.data || '已禁用', duration: 3000 })
+        loadUsers()
+    } catch (e) { console.log('操作失败', e) }
 }
 const handleEnable = async (id) => {
     try { await enableUser(id); ElMessage.success({ message: '已启用', duration: 2000 }); loadUsers() }

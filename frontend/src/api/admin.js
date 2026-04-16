@@ -30,14 +30,6 @@ export function auditHouse(houseId, adminId, action, reason = '') {
     return httpInstance({ url: `/verify/${houseId}`, method: 'post', params: { adminId, action, reason } })
 }
 
-// ========== 举报管理 ==========
-export function getPendingReports(page = 1, size = 10) {
-    return httpInstance({ url: '/report/pending', method: 'get', params: { page, size } })
-}
-export function handleReport(id, adminId, status, result = '') {
-    return httpInstance({ url: `/report/handle/${id}`, method: 'put', params: { adminId, status, result } })
-}
-
 // ========== 公告管理 ==========
 export function getAnnouncementList(page = 1, size = 10) {
     return httpInstance({ url: '/announcement/list', method: 'get', params: { page, size } })

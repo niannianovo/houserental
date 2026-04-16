@@ -11,5 +11,4 @@ public class DashboardOverviewVO {
     private Integer monthlyOrderCount;
     private BigDecimal monthlyPaymentTotal;
     private Integer pendingVerifyCount;
-    private Integer pendingReportCount;
 }

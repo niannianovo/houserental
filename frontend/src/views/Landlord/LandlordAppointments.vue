@@ -5,8 +5,24 @@
 
             <el-table :data="appointments" style="width: 100%" v-loading="loading">
                 <el-table-column prop="id" label="ID" width="60" />
-                <el-table-column prop="houseId" label="房源ID" width="80" />
-                <el-table-column prop="userId" label="预约人ID" width="90" />
+                <el-table-column label="房源" min-width="220" show-overflow-tooltip>
+                    <template #default="{ row }">
+                        <template v-if="row.houseStatus === 1">
+                            <el-link type="primary" :underline="false" @click="$router.push(`/landlord/house/${row.houseId}`)">
+                                {{ row.houseTitle || `房源#${row.houseId}` }}
+                            </el-link>
+                        </template>
+                        <template v-else>
+                            <span class="offline-title">{{ row.houseTitle || `房源#${row.houseId}` }}</span>
+                            <el-tag size="small" type="info" style="margin-left: 6px;">已下架</el-tag>
+                        </template>
+                    </template>
+                </el-table-column>
+                <el-table-column label="预约人" width="100">
+                    <template #default="{ row }">
+                        <el-link type="primary" :underline="false" @click="$router.push(`/landlord/user/${row.userId}`)">#{{ row.userId }}</el-link>
+                    </template>
+                </el-table-column>
                 <el-table-column prop="appointmentTime" label="预约时间" min-width="160" />
                 <el-table-column prop="remark" label="备注" show-overflow-tooltip min-width="160" />
                 <el-table-column label="状态" width="100">
@@ -41,7 +57,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useUserStore } from '@/stores/user'
-import { getMyAppointments, updateAppointmentStatus } from '@/api/appointment'
+import { getLandlordAppointments, updateAppointmentStatus } from '@/api/appointment'
 import { ElMessage } from 'element-plus'
 
 const userStore = useUserStore()
@@ -57,7 +73,7 @@ const statusType = (s) => ({ 0: 'warning', 1: 'success', 2: 'danger', 3: '', 4: 
 const loadAppointments = async () => {
     loading.value = true
     try {
-        const res = await getMyAppointments(userStore.userInfo.id, currentPage.value, pageSize)
+        const res = await getLandlordAppointments(userStore.userInfo.id, currentPage.value, pageSize)
         appointments.value = res.data?.records || []
         total.value = res.data?.total || 0
     } catch (e) { console.log('加载预约失败', e) }
@@ -74,3 +90,7 @@ const handleStatus = async (id, status) => {
 
 onMounted(() => loadAppointments())
 </script>
+
+<style scoped>
+.offline-title { color: #909399; text-decoration: line-through; }
+</style>

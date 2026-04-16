@@ -7,7 +7,29 @@
       "Bash(javap -p \"D:/IDEA-works/HouseRentalSystem/HouseRentalSystem/target/classes/com/example/controller/UserController.class\")",
       "Bash(find D:/IDEA-works/HouseRentalSystem/HouseRentalSystem -type f \\\\\\(-name *.html -o -name *.js -o -name *.vue -o -name *.ts -o -name *.tsx \\\\\\))",
       "Bash(find D:/IDEA-works/HouseRentalSystem/HouseRentalSystem/src -type f \\\\\\(-name *.html -o -name *.js -o -name *.vue -o -name *.ts -o -name *.tsx -o -name *.jsx \\\\\\))",
-      "Bash(grep -r \"PostMapping\\\\|GetMapping\\\\|PutMapping\\\\|DeleteMapping\" D:/IDEA-works/HouseRentalSystem/HouseRentalSystem/src/main/java/com/example/controller --include=*.java)"
+      "Bash(grep -r \"PostMapping\\\\|GetMapping\\\\|PutMapping\\\\|DeleteMapping\" D:/IDEA-works/HouseRentalSystem/HouseRentalSystem/src/main/java/com/example/controller --include=*.java)",
+      "Bash(./mvnw compile:*)",
+      "Bash(grep -E \"java$\")",
+      "Bash(mvn compile:*)",
+      "Bash(mysql:*)",
+      "Bash(grep -E \"Mapper\\\\.java$\")",
+      "Bash(find /d/IDEA-works/HouseRentalSystem -type f -name *.sql)",
+      "Bash(grep -r \"区域\\\\|area\\\\|district\" /d/IDEA-works/HouseRentalSystem/backend/src --include=*.java)",
+      "Bash(find /d/IDEA-works/HouseRentalSystem/backend/src -type f -name *Preference* -o -name *User*)",
+      "Bash(grep -r \"settings\\\\|配置\\\\|管理\" /d/IDEA-works/HouseRentalSystem/frontend/src/views/Admin --include=*.vue)",
+      "Bash(grep -rn houseType /d/IDEA-works/HouseRentalSystem/frontend/src --include=*.vue --include=*.js)",
+      "Bash(grep -E \"\\\\.\\(js|ts\\)$\")",
+      "Bash(find D:IDEA-worksHouseRentalSystemfrontendsrc -type f -name *verify* -o -name *Verify*)",
+      "Bash(find /d/IDEA-works/HouseRentalSystem -type f \\\\\\(-name *.js -o -name *.ts \\\\\\) -path */src/*)",
+      "Bash(find /d/IDEA-works/HouseRentalSystem -type f -name *verify*.vue -o -name *Verify*.vue)",
+      "Bash(grep -r \"targetType\\\\|targetId\" D:IDEA-worksHouseRentalSystemfrontend --include=*.vue --include=*.js)",
+      "Bash(find:*)",
+      "Read(//d D:/IDEA-works/**)",
+      "Bash(xargs -n1 basename)",
+      "Bash(mvn -q compile)",
+      "Bash(mvn -q compile -DskipTests)",
+      "Bash(mvn clean *)",
+      "Bash(grep -E \"\\\\.\\(vue|js\\)$\")"
     ]
   }
 }

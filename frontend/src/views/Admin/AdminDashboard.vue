@@ -38,7 +38,6 @@ const statCards = computed(() => [
     { label: '房源总数', value: overview.value.houseCount || 0, color: '#67C23A' },
     { label: '本月订单', value: overview.value.monthlyOrderCount || 0, color: '#E6A23C' },
     { label: '待审核房源', value: overview.value.pendingVerifyCount || 0, color: '#F56C6C' },
-    { label: '待处理举报', value: overview.value.pendingReportCount || 0, color: '#909399' },
     { label: '本月收入', value: overview.value.monthlyPaymentTotal || 0, color: '#409EFF' }
 ])
 

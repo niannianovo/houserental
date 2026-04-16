@@ -17,17 +17,22 @@
                             style="width: 60px; height: 45px; border-radius: 4px;"
                             fit="cover"
                             :preview-src-list="getImageList(row.images)"
+                            :z-index="3000"
+                            preview-teleported
+                            @click.stop
                         />
                         <span v-else style="color: #c0c4cc; font-size: 12px;">无图</span>
                     </template>
                 </el-table-column>
                 <el-table-column prop="title" label="房源名称" show-overflow-tooltip min-width="160" />
-                <el-table-column prop="address" label="地址" show-overflow-tooltip min-width="140" />
+                <el-table-column label="地址" show-overflow-tooltip min-width="140">
+                    <template #default="{ row }">{{ [row.province, row.city, row.district, row.address].filter(Boolean).join(' ') }}</template>
+                </el-table-column>
                 <el-table-column label="户型" width="90">
                     <template #default="{ row }">{{ row.roomCount }}室{{ row.hallCount }}厅</template>
                 </el-table-column>
-                <el-table-column prop="area" label="面积(m²)" width="85" />
-                <el-table-column prop="price" label="月租(元)" width="90" />
+                <el-table-column prop="area" label="面积(m²)" width="100" />
+                <el-table-column prop="price" label="月租(元)" width="110" />
                 <el-table-column label="审核" width="85">
                     <template #default="{ row }">
                         <el-tag :type="verifyType(row.verifyStatus)" size="small">{{ verifyText(row.verifyStatus) }}</el-tag>
@@ -39,10 +44,11 @@
                     </template>
                 </el-table-column>
                 <el-table-column prop="viewCount" label="浏览" width="65" />
-                <el-table-column label="操作" width="140" fixed="right">
+                <el-table-column label="操作" width="200" fixed="right">
                     <template #default="{ row }">
-                        <el-button type="primary" link size="small" @click="openEdit(row)">编辑</el-button>
-                        <el-popconfirm title="确定删除该房源？" @confirm="handleDelete(row.id)">
+                        <el-button v-if="row.status === 1" type="warning" link size="small" @click="handleOffline(row)">下架</el-button>
+                        <el-button v-if="row.status !== 1 && row.status !== 3" type="primary" link size="small" @click="openEdit(row)">编辑</el-button>
+                        <el-popconfirm v-if="row.status !== 3" title="确定删除该房源？" @confirm="handleDelete(row.id)">
                             <template #reference>
                                 <el-button type="danger" link size="small">删除</el-button>
                             </template>
@@ -62,13 +68,24 @@
         </el-card>
 
         <!-- 发布/编辑弹窗 -->
-        <el-dialog :title="editForm.id ? '编辑房源' : '发布房源'" v-model="dialogVisible" width="650px" :close-on-click-modal="false">
+        <el-dialog :title="editForm.id ? '编辑房源' : '发布房源'" v-model="dialogVisible" width="750px" :close-on-click-modal="false">
             <el-form :model="editForm" :rules="rules" ref="formRef" label-width="90px">
                 <el-form-item label="房源名称" prop="title">
                     <el-input v-model="editForm.title" placeholder="请输入房源标题" />
                 </el-form-item>
-                <el-form-item label="地址" prop="address">
-                    <el-input v-model="editForm.address" placeholder="请输入详细地址" />
+                <el-form-item label="所在区域" prop="areaValue">
+                    <el-cascader
+                        v-model="editForm.areaValue"
+                        :options="areaData"
+                        :props="{ expandTrigger: 'hover' }"
+                        placeholder="请选择省/市/区"
+                        clearable
+                        style="width: 100%;"
+                        @change="handleAreaChange"
+                    />
+                </el-form-item>
+                <el-form-item label="详细地址" prop="address">
+                    <el-input v-model="editForm.address" placeholder="请输入小区名称、门牌号等" />
                 </el-form-item>
                 <el-row :gutter="16">
                     <el-col :span="8">
@@ -90,17 +107,17 @@
                 <el-row :gutter="16">
                     <el-col :span="8">
                         <el-form-item label="面积(m²)" prop="area">
-                            <el-input-number v-model="editForm.area" :min="1" style="width: 100%;" />
+                            <el-input-number v-model="editForm.area" :min="1" controls-position="right" style="width: 100%;" />
                         </el-form-item>
                     </el-col>
                     <el-col :span="8">
                         <el-form-item label="月租(元)" prop="price">
-                            <el-input-number v-model="editForm.price" :min="0" :step="100" style="width: 100%;" />
+                            <el-input-number v-model="editForm.price" :min="0" :step="100" controls-position="right" style="width: 100%;" />
                         </el-form-item>
                     </el-col>
                     <el-col :span="8">
                         <el-form-item label="押金(元)">
-                            <el-input-number v-model="editForm.deposit" :min="0" :step="100" style="width: 100%;" />
+                            <el-input-number v-model="editForm.deposit" :min="0" :step="100" controls-position="right" style="width: 100%;" />
                         </el-form-item>
                     </el-col>
                 </el-row>
@@ -135,7 +152,7 @@
                             v-if="imageFileList.length < 9"
                             action=""
                             :show-file-list="false"
-                            :before-upload="handleUpload"
+                            :http-request="handleUpload"
                             accept=".jpg,.jpeg,.png,.gif,.webp"
                         >
                             <div class="upload-trigger">
@@ -165,6 +182,7 @@ import { useUserStore } from '@/stores/user'
 import { getMyHouses, publishHouse, updateHouse, deleteHouse, uploadImage } from '@/api/house'
 import { ElMessage } from 'element-plus'
 import { CircleClose, Plus } from '@element-plus/icons-vue'
+import areaData from '@/utils/areaData'
 
 const userStore = useUserStore()
 const loading = ref(false)
@@ -178,23 +196,37 @@ const formRef = ref(null)
 const imageFileList = ref([])
 
 const defaultForm = {
-    title: '', address: '', roomCount: 1, hallCount: 1, floor: '',
+    title: '', province: '', city: '', district: '', address: '', areaValue: [],
+    roomCount: 1, hallCount: 1, floor: '',
     area: null, price: null, deposit: null, houseType: 0,
     contactName: '', contactPhone: '', description: '', images: ''
 }
 const editForm = ref({ ...defaultForm })
 
+const handleAreaChange = (val) => {
+    if (val && val.length === 3) {
+        editForm.value.province = val[0]
+        editForm.value.city = val[1]
+        editForm.value.district = val[2]
+    } else {
+        editForm.value.province = ''
+        editForm.value.city = ''
+        editForm.value.district = ''
+    }
+}
+
 const rules = {
     title: [{ required: true, message: '请输入房源名称', trigger: 'blur' }],
-    address: [{ required: true, message: '请输入地址', trigger: 'blur' }],
+    areaValue: [{ required: true, message: '请选择所在区域', trigger: 'change', type: 'array' }],
+    address: [{ required: true, message: '请输入详细地址', trigger: 'blur' }],
     price: [{ required: true, message: '请输入月租', trigger: 'blur' }],
     area: [{ required: true, message: '请输入面积', trigger: 'blur' }],
     contactName: [{ required: true, message: '请输入联系人', trigger: 'blur' }],
     contactPhone: [{ required: true, message: '请输入联系电话', trigger: 'blur' }]
 }
 
-const statusText = (s) => ({ 0: '空闲', 1: '已出租', 2: '已下架' }[s] || '未知')
-const statusType = (s) => ({ 0: 'success', 1: 'warning', 2: 'info' }[s] || 'info')
+const statusText = (s) => ({ 0: '待审核', 1: '已上架', 2: '已下架', 3: '已出租' }[s] || '未知')
+const statusType = (s) => ({ 0: 'warning', 1: 'success', 2: 'info', 3: 'primary' }[s] || 'info')
 const verifyText = (s) => ({ 0: '待审核', 1: '已通过', 2: '已驳回' }[s] || '未知')
 const verifyType = (s) => ({ 0: 'warning', 1: 'success', 2: 'danger' }[s] || 'info')
 
@@ -219,21 +251,27 @@ const openPublish = () => {
 
 const openEdit = (row) => {
     editForm.value = { ...row }
+    // 回填省市区级联
+    if (row.province && row.city && row.district) {
+        editForm.value.areaValue = [row.province, row.city, row.district]
+    } else {
+        editForm.value.areaValue = []
+    }
     imageFileList.value = row.images ? row.images.split(',').filter(Boolean) : []
     dialogVisible.value = true
 }
 
 // 图片上传
-const handleUpload = async (file) => {
+const handleUpload = async ({ file }) => {
     // 校验
     const validTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp']
     if (!validTypes.includes(file.type)) {
         ElMessage.error('仅支持 jpg/png/gif/webp 格式')
-        return false
+        return
     }
     if (file.size > 5 * 1024 * 1024) {
         ElMessage.error('图片不能超过5MB')
-        return false
+        return
     }
 
     try {
@@ -243,7 +281,6 @@ const handleUpload = async (file) => {
     } catch (e) {
         console.log('上传失败', e)
     }
-    return false // 阻止 el-upload 默认行为
 }
 
 const removeImage = (idx) => {
@@ -263,12 +300,20 @@ const handleSubmit = async () => {
             ElMessage.success({ message: '房源更新成功', duration: 2000 })
         } else {
             await publishHouse({ ...editForm.value, ownerId: userStore.userInfo.id })
-            ElMessage.success({ message: '房源发布成功，等待审核', duration: 2000 })
+            ElMessage.success({ message: '房源发布成功', duration: 2000 })
         }
         dialogVisible.value = false
         loadHouses()
     } catch (e) { console.log('操作失败', e) }
     finally { submitting.value = false }
+}
+
+const handleOffline = async (row) => {
+    try {
+        await updateHouse(row.id, { ownerId: userStore.userInfo.id, status: 2 })
+        ElMessage.success({ message: '已下架，可以编辑了', duration: 2000 })
+        loadHouses()
+    } catch (e) { console.log('下架失败', e) }
 }
 
 const handleDelete = async (id) => {
@@ -320,7 +365,9 @@ onMounted(() => loadHouses())
     transition: all 0.2s;
 }
 .upload-trigger:hover {
-    border-color: #409EFF;
-    color: #409EFF;
+    border-color: #5b9bd5;
+    color: #5b9bd5;
 }
+:deep(.el-card) { border-radius: 16px; border: 1px solid #e8f0f8; }
+:deep(.el-pagination.is-background .el-pager li.is-active) { background: #5b9bd5 !important; }
 </style>

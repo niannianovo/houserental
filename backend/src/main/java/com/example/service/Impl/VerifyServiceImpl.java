@@ -3,10 +3,11 @@ package com.example.service.Impl;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.example.entity.House;
+import com.example.entity.Notification;
 import com.example.mapper.HouseMapper;
+import com.example.service.NotificationService;
 import com.example.service.VerifyService;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -17,22 +18,8 @@ import java.util.Date;
 public class VerifyServiceImpl implements VerifyService {
     @Autowired
     private HouseMapper houseMapper;
-
-    @Override
-    public int calculateScore(House house) {
-        int score = 0;
-        if (StringUtils.isNotBlank(house.getTitle())) score += 10;
-        if (StringUtils.isNotBlank(house.getDescription())) score += 10;
-        if (StringUtils.isNotBlank(house.getAddress())) score += 10;
-        if (house.getPrice() != null) score += 10;
-        if (house.getArea() != null) score += 10;
-        if (StringUtils.isNotBlank(house.getImages())) score += 20;
-        if (StringUtils.isNotBlank(house.getContactPhone())) score += 10;
-        if (StringUtils.isNotBlank(house.getContactName())) score += 10;
-        if (house.getRoomCount() != null) score += 5;
-        if (house.getHallCount() != null) score += 5;
-        return score;
-    }
+    @Autowired
+    private NotificationService notificationService;
 
     @Override
     public Page<House> getPendingList(Integer page, Integer size) {
@@ -51,9 +38,26 @@ public class VerifyServiceImpl implements VerifyService {
         }
         // action: 1通过, 2驳回
         house.setVerifyStatus(action);
-        house.setVerifyScore(calculateScore(house));
+        if (action == 1) {
+            house.setStatus(1); // 审核通过，上架
+            house.setSimilarHouseId(null); // 清除相似标记
+        }
         house.setUpdateTime(new Date());
         houseMapper.updateById(house);
         log.info("【房源审核】房源ID:{}, 管理员:{}, 操作:{}, 原因:{}", houseId, adminId, action == 1 ? "通过" : "驳回", reason);
+
+        // 通知房东审核结果
+        Notification notification = new Notification();
+        notification.setUserId(house.getOwnerId());
+        notification.setType(2); // 审核结果
+        notification.setRelatedId(houseId);
+        if (action == 1) {
+            notification.setTitle("房源审核通过");
+            notification.setContent("您的房源【" + house.getTitle() + "】已审核通过，现已上架。");
+        } else {
+            notification.setTitle("房源审核未通过");
+            notification.setContent("您的房源【" + house.getTitle() + "】审核未通过，原因：" + (reason != null ? reason : "无") + "。请修改后重新提交。");
+        }
+        notificationService.send(notification);
     }
 }

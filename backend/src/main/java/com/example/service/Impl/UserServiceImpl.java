@@ -103,6 +103,15 @@ public class UserServiceImpl implements UserService {
             throw new RuntimeException("账号必须以字母开头，只能包含字母、数字和下划线");
         }
 
+        // === 昵称校验 ===
+        if (loginDTO.getNickname() == null || loginDTO.getNickname().trim().isEmpty()) {
+            throw new RuntimeException("昵称不能为空");
+        }
+        String nickname = loginDTO.getNickname().trim();
+        if (nickname.length() < 2 || nickname.length() > 20) {
+            throw new RuntimeException("昵称长度必须在2-20个字符之间");
+        }
+
         // === 密码校验 ===
         if (loginDTO.getPassword() == null || loginDTO.getPassword().isEmpty()) {
             throw new RuntimeException("密码不能为空");
@@ -145,6 +154,13 @@ public class UserServiceImpl implements UserService {
             throw new RuntimeException("账号已存在");
         }
 
+        // 检查昵称是否已存在
+        LambdaQueryWrapper<User> nicknameWrapper = new LambdaQueryWrapper<>();
+        nicknameWrapper.eq(User::getNickname, nickname);
+        if (userMapper.selectOne(nicknameWrapper) != null) {
+            throw new RuntimeException("昵称已被使用");
+        }
+
         // 检查邮箱是否已被注册
         LambdaQueryWrapper<User> emailWrapper = new LambdaQueryWrapper<>();
         emailWrapper.eq(User::getEmail, email);
@@ -156,13 +172,11 @@ public class UserServiceImpl implements UserService {
         user.setAccount(account);
         user.setPassword(MD5Util.md5(password));
         user.setEmail(email);
-        user.setNickname(account);
+        user.setNickname(nickname);
         user.setAvatar("/avatar.png");
         user.setIsAdmin(0);
         user.setCurrentRole(0);
-        user.setIsVerified(0);
         user.setIsEmailVerified(1); // 注册时已通过邮箱验证
-        user.setReportCredit(100);
         user.setStatus(0);
         user.setCreateTime(new Date());
         user.setUpdateTime(new Date());
@@ -240,7 +254,10 @@ public class UserServiceImpl implements UserService {
         if (user == null) {
             throw new RuntimeException("用户不存在");
         }
+        // 隐藏敏感信息
         user.setPassword(null);
+        user.setPhone(null);
+        user.setEmail(null);
         return user;
     }
 

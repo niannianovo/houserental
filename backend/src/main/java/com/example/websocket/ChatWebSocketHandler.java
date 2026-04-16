@@ -1,5 +1,8 @@
 package com.example.websocket;
 
+import com.alibaba.fastjson2.JSON;
+import com.alibaba.fastjson2.JSONObject;
+import com.example.entity.ChatMessage;
 import com.example.service.ChatService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,9 +35,49 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
 
     @Override
     protected void handleTextMessage(WebSocketSession session, TextMessage message) throws Exception {
-        // TODO 解析消息JSON，存库，转发给目标用户
         String payload = message.getPayload();
         log.info("收到消息: {}", payload);
+
+        try {
+            JSONObject json = JSON.parseObject(payload);
+            String type = json.getString("type");
+
+            if ("chat".equals(type)) {
+                // 聊天消息：存库并转发
+                ChatMessage chatMessage = new ChatMessage();
+                chatMessage.setConversationId(json.getInteger("conversationId"));
+                chatMessage.setSenderId(json.getInteger("senderId"));
+                chatMessage.setContent(json.getString("content"));
+                chatMessage.setMsgType(json.getInteger("msgType"));
+
+                ChatMessage saved = chatService.sendMessage(chatMessage);
+
+                // 转发给对方（需要知道对方userId）
+                Integer targetUserId = json.getInteger("targetUserId");
+                if (targetUserId != null) {
+                    JSONObject pushMsg = new JSONObject();
+                    pushMsg.put("type", "chat");
+                    pushMsg.put("data", saved);
+                    sendToUser(targetUserId.toString(), pushMsg.toJSONString());
+                }
+
+                // 回复发送者确认
+                JSONObject ack = new JSONObject();
+                ack.put("type", "ack");
+                ack.put("data", saved);
+                session.sendMessage(new TextMessage(ack.toJSONString()));
+
+            } else if ("read".equals(type)) {
+                // 标记已读
+                Integer conversationId = json.getInteger("conversationId");
+                Integer userId = json.getInteger("userId");
+                if (conversationId != null && userId != null) {
+                    chatService.markAsRead(conversationId, userId);
+                }
+            }
+        } catch (Exception e) {
+            log.error("处理消息异常: {}", e.getMessage(), e);
+        }
     }
 
     @Override

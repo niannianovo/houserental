@@ -30,6 +30,16 @@ export function searchHouses(params) {
     return httpInstance({ url: '/house/list', method: 'get', params })
 }
 
+// 管理员强制下架房源
+export function adminTakedownHouse(id, reason) {
+    return httpInstance({ url: `/admin/house/takedown/${id}`, method: 'put', params: { reason } })
+}
+
+// 管理员删除房源
+export function adminDeleteHouse(id, reason) {
+    return httpInstance({ url: `/admin/house/${id}`, method: 'delete', params: { reason } })
+}
+
 // 上传图片
 export function uploadImage(file) {
     const formData = new FormData()

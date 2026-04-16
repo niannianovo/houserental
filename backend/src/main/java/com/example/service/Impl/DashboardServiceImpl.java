@@ -26,7 +26,6 @@ public class DashboardServiceImpl implements DashboardService {
         vo.setUserCount(dashboardMapper.countUsers());
         vo.setHouseCount(dashboardMapper.countHouses());
         vo.setPendingVerifyCount(dashboardMapper.countPendingVerify());
-        vo.setPendingReportCount(dashboardMapper.countPendingReport());
 
         // 本月订单数
         String currentMonth = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM"));

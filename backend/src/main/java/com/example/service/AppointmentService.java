@@ -7,4 +7,5 @@ public interface AppointmentService {
     void create(Appointment appointment);
     void updateStatus(Integer id, Integer status);
     Page<Appointment> getMyList(Integer userId, Integer page, Integer size);
+    Page<Appointment> getLandlordList(Integer ownerId, Integer page, Integer size);
 }

@@ -14,6 +14,9 @@ public class UserPreference {
     @TableId(type = IdType.AUTO)
     private Integer id;
     private Integer userId;
+    private String preferredProvince;
+    private String preferredCity;
+    private String preferredDistrict;
     private String preferredAreas;
     private BigDecimal priceMin;
     private BigDecimal priceMax;

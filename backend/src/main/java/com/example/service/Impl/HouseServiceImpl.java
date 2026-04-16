@@ -4,9 +4,13 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.example.entity.House;
 import com.example.entity.HouseViewLog;
+import com.example.entity.User;
 import com.example.mapper.HouseMapper;
 import com.example.mapper.HouseViewLogMapper;
+import com.example.mapper.UserMapper;
 import com.example.service.HouseService;
+import com.example.service.ImageVerifyService;
+import com.example.service.NotificationService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,6 +25,12 @@ public class HouseServiceImpl implements HouseService {
     private HouseMapper houseMapper;
     @Autowired
     private HouseViewLogMapper houseViewLogMapper;
+    @Autowired
+    private UserMapper userMapper;
+    @Autowired
+    private NotificationService notificationService;
+    @Autowired
+    private ImageVerifyService imageVerifyService;
 
     @Override
     public void publish(House house) {
@@ -34,8 +44,8 @@ public class HouseServiceImpl implements HouseService {
             throw new RuntimeException("房东ID不能为空");
         }
 
-        house.setStatus(0);          // 0: 空闲
-        house.setVerifyStatus(0);     // 0: 待审核
+        house.setStatus(0);
+        house.setVerifyStatus(0);
         house.setViewCount(0);
         house.setFavoriteCount(0);
         house.setContactCount(0);
@@ -43,6 +53,9 @@ public class HouseServiceImpl implements HouseService {
         house.setUpdateTime(new Date());
         houseMapper.insert(house);
         log.info("【房源发布】房东ID:{}, 房源ID:{}, 标题:{}", house.getOwnerId(), house.getId(), house.getTitle());
+
+        // 图片相似性鉴别：无相似自动通过，有相似待人工审核（通知由鉴别服务发送）
+        imageVerifyService.verify(house);
     }
 
     @Override
@@ -54,12 +67,29 @@ public class HouseServiceImpl implements HouseService {
         if (!existing.getOwnerId().equals(house.getOwnerId())) {
             throw new RuntimeException("无权修改该房源");
         }
+        if (existing.getStatus() == 3) {
+            throw new RuntimeException("已出租的房源不允许编辑");
+        }
+
+        // 仅下架操作（只传了status=2），不触发图片鉴别
+        if (house.getStatus() != null && house.getStatus() == 2 && house.getTitle() == null) {
+            house.setUpdateTime(new Date());
+            houseMapper.updateById(house);
+            log.info("【房源下架】房源ID:{}", house.getId());
+            return;
+        }
+
+        if (existing.getStatus() == 1) {
+            throw new RuntimeException("已上架的房源请先下架再编辑");
+        }
 
         house.setUpdateTime(new Date());
-        // 修改后重新审核
         house.setVerifyStatus(0);
         houseMapper.updateById(house);
         log.info("【房源修改】房源ID:{}", house.getId());
+
+        // 重新进行图片相似性鉴别
+        imageVerifyService.verify(house);
     }
 
     @Override
@@ -83,33 +113,70 @@ public class HouseServiceImpl implements HouseService {
             throw new RuntimeException("房源不存在");
         }
 
-        // 增加浏览量
-        house.setViewCount(house.getViewCount() == null ? 1 : house.getViewCount() + 1);
-        houseMapper.updateById(house);
-
-        // 记录浏览日志
+        // 增加浏览量：排除房东本人和管理员
+        boolean shouldCount = true;
         if (userId != null) {
-            HouseViewLog viewLog = new HouseViewLog();
-            viewLog.setHouseId(id);
-            viewLog.setUserId(userId);
-            viewLog.setCreateTime(new Date());
-            houseViewLogMapper.insert(viewLog);
+            if (userId.equals(house.getOwnerId())) {
+                shouldCount = false;
+            } else {
+                User user = userMapper.selectById(userId);
+                if (user != null && user.getIsAdmin() != null && user.getIsAdmin() == 1) {
+                    shouldCount = false;
+                }
+            }
+        }
+
+        if (shouldCount) {
+            house.setViewCount(house.getViewCount() == null ? 1 : house.getViewCount() + 1);
+            houseMapper.updateById(house);
+
+            // 记录浏览日志
+            if (userId != null) {
+                HouseViewLog viewLog = new HouseViewLog();
+                viewLog.setHouseId(id);
+                viewLog.setUserId(userId);
+                viewLog.setCreateTime(new Date());
+                houseViewLogMapper.insert(viewLog);
+            }
         }
 
         return house;
     }
 
     @Override
-    public Page<House> search(String keyword, String address, Integer houseType,
-                              Integer minPrice, Integer maxPrice, Integer page, Integer size) {
+    public Page<House> search(Integer id, String keyword, String address, String province, String city, String district,
+                              Integer houseType, Integer minPrice, Integer maxPrice, Integer status, Integer verifyStatus,
+                              Integer page, Integer size) {
         Page<House> pageParam = new Page<>(page, size);
         LambdaQueryWrapper<House> wrapper = new LambdaQueryWrapper<>();
 
-        // 搜索审核通过和待审核的房源（排除已驳回）
-        wrapper.in(House::getVerifyStatus, 0, 1);
+        if (id != null) {
+            wrapper.eq(House::getId, id);
+            return houseMapper.selectPage(pageParam, wrapper);
+        }
+
+        // 指定了状态则按指定状态查；都没指定默认只查已上架（租客视角）
+        // status=-1 表示查所有状态（管理员视角）
+        if (status != null && status != -1) {
+            wrapper.eq(House::getStatus, status);
+        } else if (status == null && verifyStatus == null) {
+            wrapper.eq(House::getStatus, 1);
+        }
+        if (verifyStatus != null) {
+            wrapper.eq(House::getVerifyStatus, verifyStatus);
+        }
 
         if (StringUtils.isNotBlank(keyword)) {
             wrapper.and(w -> w.like(House::getTitle, keyword).or().like(House::getDescription, keyword));
+        }
+        if (StringUtils.isNotBlank(province)) {
+            wrapper.eq(House::getProvince, province);
+        }
+        if (StringUtils.isNotBlank(city)) {
+            wrapper.eq(House::getCity, city);
+        }
+        if (StringUtils.isNotBlank(district)) {
+            wrapper.eq(House::getDistrict, district);
         }
         if (StringUtils.isNotBlank(address)) {
             wrapper.like(House::getAddress, address);

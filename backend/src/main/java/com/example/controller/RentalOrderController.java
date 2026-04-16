@@ -23,28 +23,54 @@ public class RentalOrderController {
 
     @GetMapping("/list")
     public Result<Page<RentalOrder>> getMyList(@RequestParam Integer userId,
+                                               @RequestParam(required = false) Integer role,
                                                @RequestParam(defaultValue = "1") Integer page,
                                                @RequestParam(defaultValue = "10") Integer size) {
-        return Result.success(rentalOrderService.getMyList(userId, page, size));
+        return Result.success(rentalOrderService.getMyList(userId, role, page, size));
     }
 
     @GetMapping("/history")
     public Result<Page<RentalOrder>> getHistory(@RequestParam Integer userId,
+                                                @RequestParam(required = false) Integer role,
                                                 @RequestParam(defaultValue = "1") Integer page,
                                                 @RequestParam(defaultValue = "10") Integer size) {
-        return Result.success(rentalOrderService.getHistory(userId, page, size));
+        return Result.success(rentalOrderService.getHistory(userId, role, page, size));
     }
 
     @PutMapping("/sign/{id}")
-    public Result<String> sign(@PathVariable Integer id, @RequestParam Integer tenantId) {
-        rentalOrderService.sign(id, tenantId);
-        return Result.success("签约成功");
+    public Result<String> sign(@PathVariable Integer id, @RequestParam Integer ownerId) {
+        rentalOrderService.sign(id, ownerId);
+        return Result.success("签约成功，等待租客缴纳押金");
     }
 
-    @PutMapping("/renew/{id}")
-    public Result<String> renew(@PathVariable Integer id, @RequestParam String newEndDate) {
-        rentalOrderService.renew(id, newEndDate);
-        return Result.success("续租成功");
+    @PutMapping("/reject/{id}")
+    public Result<String> reject(@PathVariable Integer id, @RequestParam Integer ownerId) {
+        rentalOrderService.reject(id, ownerId);
+        return Result.success("已拒绝签约");
+    }
+
+    @PutMapping("/pay-deposit/{id}")
+    public Result<String> payDeposit(@PathVariable Integer id, @RequestParam Integer tenantId) {
+        rentalOrderService.payDeposit(id, tenantId);
+        return Result.success("押金缴纳成功，租约正式生效");
+    }
+
+    @PutMapping("/refund-deposit/{id}")
+    public Result<String> refundDeposit(@PathVariable Integer id, @RequestParam Integer ownerId) {
+        rentalOrderService.refundDeposit(id, ownerId);
+        return Result.success("押金已退还");
+    }
+
+    @PutMapping("/renew-apply/{id}")
+    public Result<String> renewApply(@PathVariable Integer id, @RequestParam Integer tenantId, @RequestParam String newEndDate) {
+        rentalOrderService.renewApply(id, tenantId, newEndDate);
+        return Result.success("续租申请已提交");
+    }
+
+    @PutMapping("/renew-confirm/{id}")
+    public Result<String> renewConfirm(@PathVariable Integer id, @RequestParam Integer ownerId) {
+        rentalOrderService.renewConfirm(id, ownerId);
+        return Result.success("续租确认成功");
     }
 
     @PutMapping("/quit/{id}")
@@ -57,5 +83,17 @@ public class RentalOrderController {
     public Result<String> quitConfirm(@PathVariable Integer id, @RequestParam Integer operatorId) {
         rentalOrderService.quitConfirm(id, operatorId);
         return Result.success("退租完成");
+    }
+
+    @PutMapping("/quit-cancel/{id}")
+    public Result<String> quitCancel(@PathVariable Integer id, @RequestParam Integer operatorId) {
+        rentalOrderService.quitCancel(id, operatorId);
+        return Result.success("退租申请已撤回");
+    }
+
+    @PutMapping("/cancel/{id}")
+    public Result<String> cancel(@PathVariable Integer id, @RequestParam Integer operatorId) {
+        rentalOrderService.cancel(id, operatorId);
+        return Result.success("订单已取消");
     }
 }

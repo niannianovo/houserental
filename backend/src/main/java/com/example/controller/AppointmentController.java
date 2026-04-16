@@ -33,4 +33,11 @@ public class AppointmentController {
                                                @RequestParam(defaultValue = "10") Integer size) {
         return Result.success(appointmentService.getMyList(userId, page, size));
     }
+
+    @GetMapping("/landlord/list")
+    public Result<Page<Appointment>> getLandlordList(@RequestParam Integer ownerId,
+                                                     @RequestParam(defaultValue = "1") Integer page,
+                                                     @RequestParam(defaultValue = "10") Integer size) {
+        return Result.success(appointmentService.getLandlordList(ownerId, page, size));
+    }
 }

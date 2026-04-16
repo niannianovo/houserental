@@ -20,13 +20,7 @@ public class User {
     private String phone;
     private Integer isAdmin;
     private Integer currentRole;
-    private String realName;
-    private String idCard;
-    private Integer isVerified;
     private Integer isEmailVerified;
-    private String idCardFront;
-    private String idCardBack;
-    private Integer reportCredit;
     private Integer status;
     private Date createTime;
     private Date updateTime;

@@ -13,24 +13,19 @@ CREATE TABLE `user` (
     `id` INT NOT NULL AUTO_INCREMENT,
     `account` VARCHAR(50) NOT NULL COMMENT '账号',
     `password` VARCHAR(100) NOT NULL COMMENT '密码（MD5）',
-    `nickname` VARCHAR(50) DEFAULT NULL COMMENT '昵称',
+    `nickname` VARCHAR(50) NOT NULL COMMENT '昵称（唯一）',
     `avatar` VARCHAR(255) DEFAULT NULL COMMENT '头像URL',
     `email` VARCHAR(100) DEFAULT NULL COMMENT '邮箱',
     `phone` VARCHAR(20) DEFAULT NULL COMMENT '手机号',
     `is_admin` TINYINT NOT NULL DEFAULT 0 COMMENT '是否管理员（0否 1是）',
     `current_role` TINYINT DEFAULT 0 COMMENT '当前身份（0租客 1房东）',
-    `real_name` VARCHAR(50) DEFAULT NULL COMMENT '真实姓名',
-    `id_card` VARCHAR(20) DEFAULT NULL COMMENT '身份证号',
-    `is_verified` TINYINT NOT NULL DEFAULT 0 COMMENT '实名认证（0未认证 1已认证）',
     `is_email_verified` TINYINT NOT NULL DEFAULT 0 COMMENT '邮箱是否已验证（0/1）',
-    `id_card_front` VARCHAR(255) DEFAULT NULL COMMENT '身份证正面照URL',
-    `id_card_back` VARCHAR(255) DEFAULT NULL COMMENT '身份证反面照URL',
-    `report_credit` INT NOT NULL DEFAULT 100 COMMENT '举报信誉分',
     `status` TINYINT NOT NULL DEFAULT 0 COMMENT '账号状态（0正常 1禁用）',
     `create_time` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `update_time` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (`id`),
-    UNIQUE KEY `uk_account` (`account`)
+    UNIQUE KEY `uk_account` (`account`),
+    UNIQUE KEY `uk_nickname` (`nickname`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='用户表';
 
 -- -------------------------------------------
@@ -41,7 +36,10 @@ CREATE TABLE `house` (
     `owner_id` INT NOT NULL COMMENT '房东ID',
     `title` VARCHAR(100) NOT NULL COMMENT '标题',
     `description` TEXT DEFAULT NULL COMMENT '描述',
-    `address` VARCHAR(255) NOT NULL COMMENT '地址',
+    `province` VARCHAR(50) DEFAULT NULL COMMENT '省份',
+    `city` VARCHAR(50) DEFAULT NULL COMMENT '城市',
+    `district` VARCHAR(50) DEFAULT NULL COMMENT '区县',
+    `address` VARCHAR(255) NOT NULL COMMENT '详细地址（小区名+门牌号）',
     `area` DECIMAL(10,2) DEFAULT NULL COMMENT '面积（平方米）',
     `price` DECIMAL(10,2) NOT NULL COMMENT '月租金',
     `deposit` DECIMAL(10,2) DEFAULT NULL COMMENT '押金',
@@ -50,15 +48,14 @@ CREATE TABLE `house` (
     `floor` VARCHAR(20) DEFAULT NULL COMMENT '楼层',
     `house_type` TINYINT DEFAULT 0 COMMENT '类型（0整租 1合租）',
     `status` TINYINT NOT NULL DEFAULT 0 COMMENT '状态（0待审核 1已上架 2已下架 3已出租）',
-    `verify_status` TINYINT NOT NULL DEFAULT 0 COMMENT '审核状态（0未审核 1已通过 2已驳回 3标记虚假）',
-    `verify_score` INT NOT NULL DEFAULT 0 COMMENT '真实性评分（0-100）',
-    `is_certified` TINYINT NOT NULL DEFAULT 0 COMMENT '房源认证（0未认证 1已认证）',
+    `verify_status` TINYINT NOT NULL DEFAULT 0 COMMENT '审核状态（0未审核 1已通过 2已驳回）',
     `images` TEXT DEFAULT NULL COMMENT '图片URL（逗号分隔）',
     `contact_phone` VARCHAR(20) DEFAULT NULL COMMENT '联系电话',
     `contact_name` VARCHAR(50) DEFAULT NULL COMMENT '联系人',
     `view_count` INT NOT NULL DEFAULT 0 COMMENT '浏览次数',
     `favorite_count` INT NOT NULL DEFAULT 0 COMMENT '收藏数',
     `contact_count` INT NOT NULL DEFAULT 0 COMMENT '沟通数',
+    `similar_house_id` INT DEFAULT NULL COMMENT '相似房源ID（图片鉴别标记）',
     `create_time` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `update_time` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (`id`),
@@ -68,7 +65,21 @@ CREATE TABLE `house` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='房源表';
 
 -- -------------------------------------------
--- 3. 浏览记录表
+-- 3. 图片哈希表（用于图片相似性鉴别）
+-- -------------------------------------------
+CREATE TABLE `image_hash` (
+    `id` INT NOT NULL AUTO_INCREMENT,
+    `house_id` INT NOT NULL COMMENT '房源ID',
+    `image_url` VARCHAR(255) NOT NULL COMMENT '图片URL',
+    `phash` BIGINT NOT NULL COMMENT '感知哈希值',
+    `color_hist` TEXT DEFAULT NULL COMMENT '颜色直方图（64维向量，逗号分隔）',
+    `create_time` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    KEY `idx_house_id` (`house_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='图片哈希表';
+
+-- -------------------------------------------
+-- 4. 浏览记录表
 -- -------------------------------------------
 CREATE TABLE `house_view_log` (
     `id` INT NOT NULL AUTO_INCREMENT,
@@ -81,7 +92,7 @@ CREATE TABLE `house_view_log` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='浏览记录表';
 
 -- -------------------------------------------
--- 4. 收藏表
+-- 5. 收藏表
 -- -------------------------------------------
 CREATE TABLE `house_favorite` (
     `id` INT NOT NULL AUTO_INCREMENT,
@@ -94,7 +105,7 @@ CREATE TABLE `house_favorite` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='收藏表';
 
 -- -------------------------------------------
--- 5. 房源评论表
+-- 6. 房源评论表
 -- -------------------------------------------
 CREATE TABLE `house_comment` (
     `id` INT NOT NULL AUTO_INCREMENT,
@@ -110,7 +121,7 @@ CREATE TABLE `house_comment` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='房源评论表';
 
 -- -------------------------------------------
--- 6. 房源备注表
+-- 7. 房源备注表
 -- -------------------------------------------
 CREATE TABLE `house_note` (
     `id` INT NOT NULL AUTO_INCREMENT,
@@ -124,7 +135,7 @@ CREATE TABLE `house_note` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='房源备注表';
 
 -- -------------------------------------------
--- 7. 用户互评表
+-- 8. 用户互评表
 -- -------------------------------------------
 CREATE TABLE `user_review` (
     `id` INT NOT NULL AUTO_INCREMENT,
@@ -142,7 +153,7 @@ CREATE TABLE `user_review` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='用户互评表';
 
 -- -------------------------------------------
--- 8. 拉黑表
+-- 9. 拉黑表
 -- -------------------------------------------
 CREATE TABLE `user_block` (
     `id` INT NOT NULL AUTO_INCREMENT,
@@ -154,12 +165,15 @@ CREATE TABLE `user_block` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='拉黑表';
 
 -- -------------------------------------------
--- 9. 用户偏好表
+-- 10. 用户偏好表
 -- -------------------------------------------
 CREATE TABLE `user_preference` (
     `id` INT NOT NULL AUTO_INCREMENT,
     `user_id` INT NOT NULL COMMENT '用户ID',
-    `preferred_areas` VARCHAR(255) DEFAULT NULL COMMENT '偏好区域（逗号分隔）',
+    `preferred_province` VARCHAR(50) DEFAULT NULL COMMENT '偏好省份',
+    `preferred_city` VARCHAR(50) DEFAULT NULL COMMENT '偏好城市',
+    `preferred_district` VARCHAR(50) DEFAULT NULL COMMENT '偏好区县',
+    `preferred_areas` VARCHAR(255) DEFAULT NULL COMMENT '偏好区域（兼容旧数据）',
     `price_min` DECIMAL(10,2) DEFAULT NULL COMMENT '偏好最低价',
     `price_max` DECIMAL(10,2) DEFAULT NULL COMMENT '偏好最高价',
     `preferred_house_type` TINYINT DEFAULT NULL COMMENT '偏好类型（0整租 1合租）',
@@ -170,7 +184,7 @@ CREATE TABLE `user_preference` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='用户偏好表';
 
 -- -------------------------------------------
--- 10. 搜索历史表
+-- 11. 搜索历史表
 -- -------------------------------------------
 CREATE TABLE `search_history` (
     `id` INT NOT NULL AUTO_INCREMENT,
@@ -183,7 +197,7 @@ CREATE TABLE `search_history` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='搜索历史表';
 
 -- -------------------------------------------
--- 11. 聊天会话表
+-- 12. 聊天会话表
 -- -------------------------------------------
 CREATE TABLE `conversation` (
     `id` INT NOT NULL AUTO_INCREMENT,
@@ -200,7 +214,7 @@ CREATE TABLE `conversation` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='聊天会话表';
 
 -- -------------------------------------------
--- 12. 聊天消息表
+-- 13. 聊天消息表
 -- -------------------------------------------
 CREATE TABLE `chat_message` (
     `id` INT NOT NULL AUTO_INCREMENT,
@@ -216,7 +230,7 @@ CREATE TABLE `chat_message` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='聊天消息表';
 
 -- -------------------------------------------
--- 13. 快捷回复表
+-- 14. 快捷回复表
 -- -------------------------------------------
 CREATE TABLE `quick_reply` (
     `id` INT NOT NULL AUTO_INCREMENT,
@@ -230,7 +244,7 @@ CREATE TABLE `quick_reply` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='快捷回复表';
 
 -- -------------------------------------------
--- 14. 租约表
+-- 15. 租约表
 -- -------------------------------------------
 CREATE TABLE `rental_order` (
     `id` INT NOT NULL AUTO_INCREMENT,
@@ -242,6 +256,9 @@ CREATE TABLE `rental_order` (
     `monthly_rent` DECIMAL(10,2) NOT NULL COMMENT '月租金',
     `contract_file` VARCHAR(255) DEFAULT NULL COMMENT '合同文件URL',
     `status` TINYINT NOT NULL DEFAULT 0 COMMENT '状态（0待签约 1进行中 2已到期 3续租中 4退租申请中 5已退租）',
+    `deposit_amount` DECIMAL(10,2) DEFAULT NULL COMMENT '押金金额',
+    `deposit_status` TINYINT NOT NULL DEFAULT 0 COMMENT '押金状态（0未付 1已付 2已退）',
+    `quit_applicant` INT DEFAULT NULL COMMENT '退租申请人ID',
     `create_time` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (`id`),
     KEY `idx_tenant_id` (`tenant_id`),
@@ -250,7 +267,7 @@ CREATE TABLE `rental_order` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='租约表';
 
 -- -------------------------------------------
--- 15. 租约操作日志表
+-- 16. 租约操作日志表
 -- -------------------------------------------
 CREATE TABLE `rental_order_log` (
     `id` INT NOT NULL AUTO_INCREMENT,
@@ -264,7 +281,7 @@ CREATE TABLE `rental_order_log` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='租约操作日志表';
 
 -- -------------------------------------------
--- 16. 租金支付表
+-- 17. 租金支付表
 -- -------------------------------------------
 CREATE TABLE `rent_payment` (
     `id` INT NOT NULL AUTO_INCREMENT,
@@ -282,54 +299,12 @@ CREATE TABLE `rent_payment` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='租金支付表';
 
 -- -------------------------------------------
--- 17. 认证申请表
--- -------------------------------------------
-CREATE TABLE `verify_request` (
-    `id` INT NOT NULL AUTO_INCREMENT,
-    `user_id` INT NOT NULL COMMENT '申请人ID',
-    `type` TINYINT NOT NULL COMMENT '类型（0实名认证 1房源认证）',
-    `real_name` VARCHAR(50) DEFAULT NULL COMMENT '真实姓名',
-    `id_card` VARCHAR(20) DEFAULT NULL COMMENT '身份证号',
-    `id_card_front` VARCHAR(255) DEFAULT NULL COMMENT '身份证正面URL',
-    `id_card_back` VARCHAR(255) DEFAULT NULL COMMENT '身份证反面URL',
-    `house_id` INT DEFAULT NULL COMMENT '房源ID（房源认证）',
-    `property_cert` VARCHAR(255) DEFAULT NULL COMMENT '房产证照片URL',
-    `status` TINYINT NOT NULL DEFAULT 0 COMMENT '状态（0待审核 1通过 2驳回）',
-    `reject_reason` VARCHAR(255) DEFAULT NULL COMMENT '驳回原因',
-    `admin_id` INT DEFAULT NULL COMMENT '审核人',
-    `create_time` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    `update_time` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    PRIMARY KEY (`id`),
-    KEY `idx_user_id` (`user_id`),
-    KEY `idx_status` (`status`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='认证申请表';
-
--- -------------------------------------------
--- 18. 通用举报表
--- -------------------------------------------
-CREATE TABLE `report` (
-    `id` INT NOT NULL AUTO_INCREMENT,
-    `reporter_id` INT NOT NULL COMMENT '举报人ID',
-    `target_type` TINYINT NOT NULL COMMENT '目标类型（0房源 1房源评论 2用户互评）',
-    `target_id` INT NOT NULL COMMENT '目标ID',
-    `reason` TEXT NOT NULL COMMENT '举报原因',
-    `status` TINYINT NOT NULL DEFAULT 0 COMMENT '状态（0待处理 1举报成立 2举报不成立）',
-    `admin_id` INT DEFAULT NULL COMMENT '处理人',
-    `result` VARCHAR(255) DEFAULT NULL COMMENT '处理结果',
-    `create_time` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    PRIMARY KEY (`id`),
-    KEY `idx_reporter_id` (`reporter_id`),
-    KEY `idx_target` (`target_type`, `target_id`),
-    KEY `idx_status` (`status`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='通用举报表';
-
--- -------------------------------------------
--- 19. 通知表
+-- 20. 通知表
 -- -------------------------------------------
 CREATE TABLE `notification` (
     `id` INT NOT NULL AUTO_INCREMENT,
     `user_id` INT NOT NULL COMMENT '接收人ID',
-    `type` TINYINT NOT NULL COMMENT '类型（0降价 1公告 2审核结果 3举报结果 4支付提醒 5合同提醒）',
+    `type` TINYINT NOT NULL COMMENT '类型（0降价 1公告 2审核结果 4支付提醒 5合同提醒）',
     `title` VARCHAR(100) NOT NULL COMMENT '标题',
     `content` TEXT DEFAULT NULL COMMENT '内容',
     `related_id` INT DEFAULT NULL COMMENT '关联ID',
@@ -341,7 +316,7 @@ CREATE TABLE `notification` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='通知表';
 
 -- -------------------------------------------
--- 20. 系统公告表
+-- 21. 系统公告表
 -- -------------------------------------------
 CREATE TABLE `announcement` (
     `id` INT NOT NULL AUTO_INCREMENT,
@@ -355,7 +330,7 @@ CREATE TABLE `announcement` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='系统公告表';
 
 -- -------------------------------------------
--- 21. 管理员操作日志表
+-- 22. 管理员操作日志表
 -- -------------------------------------------
 CREATE TABLE `admin_log` (
     `id` INT NOT NULL AUTO_INCREMENT,
@@ -371,7 +346,7 @@ CREATE TABLE `admin_log` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='管理员操作日志表';
 
 -- -------------------------------------------
--- 22. 预约看房表
+-- 23. 预约看房表
 -- -------------------------------------------
 CREATE TABLE `appointment` (
     `id` INT NOT NULL AUTO_INCREMENT,

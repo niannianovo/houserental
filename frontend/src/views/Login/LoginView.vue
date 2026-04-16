@@ -84,9 +84,9 @@ const loginForm = ref({
 
 // 账号输入框提示
 const accountPlaceholder = computed(() => {
-    return activeRole.value === 0  // ⭐ 判断条件改成数字
-        ? '请输入手机号/邮箱'
-        : '请输入房东账号/手机号'
+    return activeRole.value === 0
+        ? '请输入账号'
+        : '请输入账号'
 })
 
 // 角色提示

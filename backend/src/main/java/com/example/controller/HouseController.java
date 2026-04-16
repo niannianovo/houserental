@@ -22,14 +22,20 @@ public class HouseController {
     }
 
     @GetMapping("/list")
-    public Result<Page<House>> search(@RequestParam(required = false) String keyword,
+    public Result<Page<House>> search(@RequestParam(required = false) Integer id,
+                                      @RequestParam(required = false) String keyword,
                                       @RequestParam(required = false) String address,
+                                      @RequestParam(required = false) String province,
+                                      @RequestParam(required = false) String city,
+                                      @RequestParam(required = false) String district,
                                       @RequestParam(required = false) Integer houseType,
                                       @RequestParam(required = false) Integer minPrice,
                                       @RequestParam(required = false) Integer maxPrice,
+                                      @RequestParam(required = false) Integer status,
+                                      @RequestParam(required = false) Integer verifyStatus,
                                       @RequestParam(defaultValue = "1") Integer page,
                                       @RequestParam(defaultValue = "10") Integer size) {
-        return Result.success(houseService.search(keyword, address, houseType, minPrice, maxPrice, page, size));
+        return Result.success(houseService.search(id, keyword, address, province, city, district, houseType, minPrice, maxPrice, status, verifyStatus, page, size));
     }
 
     @GetMapping("/{id}")

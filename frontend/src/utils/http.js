@@ -10,7 +10,10 @@ const httpInstance = axios.create({
 
 // axios请求拦截器
 httpInstance.interceptors.request.use(config => {
-    config.headers['Content-Type'] = 'application/json;charset=utf-8';
+    // 文件上传时不覆盖 Content-Type，让浏览器自动设置 multipart boundary
+    if (!(config.data instanceof FormData)) {
+        config.headers['Content-Type'] = 'application/json;charset=utf-8';
+    }
     return config
 }, e => Promise.reject(e))
 

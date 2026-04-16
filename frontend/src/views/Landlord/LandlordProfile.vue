@@ -27,10 +27,6 @@
                                 <el-tag v-else type="info" size="small">未验证</el-tag>
                             </div>
                         </el-form-item>
-                        <el-form-item label="真实姓名">
-                            <span v-if="profileForm.realName">{{ profileForm.realName }}</span>
-                            <span v-else style="color: #c0c4cc;">未实名认证</span>
-                        </el-form-item>
                         <el-form-item>
                             <el-button type="primary" @click="handleSave" :loading="saving">保存修改</el-button>
                         </el-form-item>
@@ -60,12 +56,6 @@
                 <el-card>
                     <template #header>认证状态</template>
                     <div style="display: flex; flex-direction: column; gap: 16px;">
-                        <div style="display: flex; justify-content: space-between; align-items: center;">
-                            <span>身份认证</span>
-                            <el-tag :type="profileForm.isVerified ? 'success' : 'warning'" size="small">
-                                {{ profileForm.isVerified ? '已认证' : '未认证' }}
-                            </el-tag>
-                        </div>
                         <div style="display: flex; justify-content: space-between; align-items: center;">
                             <span>邮箱认证</span>
                             <el-tag :type="profileForm.isEmailVerified ? 'success' : 'warning'" size="small">

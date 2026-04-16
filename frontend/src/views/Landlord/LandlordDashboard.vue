@@ -5,7 +5,7 @@
             <el-col :span="6">
                 <el-card shadow="hover">
                     <div class="stat-card">
-                        <div class="stat-icon" style="background: #409EFF;"><el-icon :size="28"><House /></el-icon></div>
+                        <div class="stat-icon" style="background: #5b9bd5;"><el-icon :size="28"><House /></el-icon></div>
                         <div class="stat-info">
                             <div class="stat-value">{{ stats.houseCount }}</div>
                             <div class="stat-label">我的房源</div>
@@ -16,7 +16,7 @@
             <el-col :span="6">
                 <el-card shadow="hover">
                     <div class="stat-card">
-                        <div class="stat-icon" style="background: #67C23A;"><el-icon :size="28"><Document /></el-icon></div>
+                        <div class="stat-icon" style="background: #4a8bc2;"><el-icon :size="28"><Document /></el-icon></div>
                         <div class="stat-info">
                             <div class="stat-value">{{ stats.orderCount }}</div>
                             <div class="stat-label">租赁订单</div>
@@ -27,7 +27,7 @@
             <el-col :span="6">
                 <el-card shadow="hover">
                     <div class="stat-card">
-                        <div class="stat-icon" style="background: #E6A23C;"><el-icon :size="28"><Money /></el-icon></div>
+                        <div class="stat-icon" style="background: #7ab3e0;"><el-icon :size="28"><Money /></el-icon></div>
                         <div class="stat-info">
                             <div class="stat-value">{{ stats.pendingPayment }}</div>
                             <div class="stat-label">待确认收款</div>
@@ -38,7 +38,7 @@
             <el-col :span="6">
                 <el-card shadow="hover">
                     <div class="stat-card">
-                        <div class="stat-icon" style="background: #F56C6C;"><el-icon :size="28"><Calendar /></el-icon></div>
+                        <div class="stat-icon" style="background: #3a7bbf;"><el-icon :size="28"><Calendar /></el-icon></div>
                         <div class="stat-info">
                             <div class="stat-value">{{ stats.appointmentCount }}</div>
                             <div class="stat-label">待处理预约</div>
@@ -108,8 +108,8 @@ const recentHouses = ref([])
 const recentOrders = ref([])
 const stats = ref({ houseCount: 0, orderCount: 0, pendingPayment: 0, appointmentCount: 0 })
 
-const houseStatusText = (s) => ({ 0: '待审核', 1: '已上架', 2: '已下架', 3: '已驳回' }[s] || '未知')
-const houseStatusType = (s) => ({ 0: 'warning', 1: 'success', 2: 'info', 3: 'danger' }[s] || 'info')
+const houseStatusText = (s) => ({ 0: '待审核', 1: '已上架', 2: '已下架', 3: '已出租' }[s] || '未知')
+const houseStatusType = (s) => ({ 0: 'warning', 1: 'success', 2: 'info', 3: 'primary' }[s] || 'info')
 const orderStatusText = (s) => ({ 0: '待签约', 1: '履行中', 2: '已到期', 3: '已退租', 4: '申请退租中' }[s] || '未知')
 const orderStatusType = (s) => ({ 0: 'warning', 1: 'success', 2: 'info', 3: '', 4: 'danger' }[s] || 'info')
 
@@ -150,11 +150,12 @@ onMounted(async () => {
 .stat-value {
     font-size: 28px;
     font-weight: bold;
-    color: #303133;
+    color: #1a3a5c;
 }
 .stat-label {
     font-size: 14px;
-    color: #909399;
+    color: #7a94a8;
     margin-top: 4px;
 }
+:deep(.el-card) { border-radius: 16px; border: 1px solid #e8f0f8; }
 </style>

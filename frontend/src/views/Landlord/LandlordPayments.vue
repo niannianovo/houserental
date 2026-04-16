@@ -24,7 +24,7 @@
             <!-- 租金详情 -->
             <div v-else>
                 <div style="margin-bottom: 16px;">
-                    <el-button @click="selectedOrderId = null">返回订单列表</el-button>
+                    <el-button @click="backToList">返回订单列表</el-button>
                     <span style="margin-left: 12px; color: #909399;">订单号：{{ selectedOrderId }}</span>
                 </div>
 
@@ -94,7 +94,7 @@ const payMethodText = (m) => ({ 0: '微信', 1: '支付宝', 2: '银行转账' }
 const loadOrders = async () => {
     loadingOrders.value = true
     try {
-        const res = await getMyOrders(userStore.userInfo.id, 1, 50)
+        const res = await getMyOrders(userStore.userInfo.id, 1, 50, 1)
         orders.value = res.data?.records || []
     } catch (e) { console.log('加载订单失败', e) }
     finally { loadingOrders.value = false }
@@ -108,6 +108,11 @@ const selectOrder = async (orderId) => {
         payments.value = res.data || []
     } catch (e) { console.log('加载租金失败', e) }
     finally { loadingPayments.value = false }
+}
+
+const backToList = () => {
+    selectedOrderId.value = null
+    if (orders.value.length === 0) loadOrders()
 }
 
 const handleConfirm = async (id) => {

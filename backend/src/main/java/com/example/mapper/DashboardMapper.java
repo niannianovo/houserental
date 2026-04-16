@@ -20,9 +20,6 @@ public interface DashboardMapper {
     @Select("SELECT COUNT(*) FROM house WHERE verify_status = 0")
     Integer countPendingVerify();
 
-    @Select("SELECT COUNT(*) FROM report WHERE status = 0")
-    Integer countPendingReport();
-
     @Select("SELECT COUNT(*) FROM rental_order WHERE DATE_FORMAT(create_time, '%Y-%m') = #{month}")
     Integer countMonthlyOrders(@Param("month") String month);
 }

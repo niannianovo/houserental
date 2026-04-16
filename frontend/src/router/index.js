@@ -62,14 +62,29 @@ const router = createRouter({
           component: () => import('@/views/Tenant/TenantAppointments.vue')
         },
         {
+          path: 'chat',
+          name: 'TenantChat',
+          component: () => import('@/views/Tenant/TenantChat.vue')
+        },
+        {
           path: 'notifications',
           name: 'TenantNotifications',
           component: () => import('@/views/Tenant/TenantNotifications.vue')
         },
         {
+          path: 'reviews',
+          name: 'TenantReviews',
+          component: () => import('@/views/Tenant/TenantReviews.vue')
+        },
+        {
           path: 'profile',
           name: 'TenantProfile',
           component: () => import('@/views/Tenant/TenantProfile.vue')
+        },
+        {
+          path: 'user/:id',
+          name: 'TenantUserProfile',
+          component: () => import('@/views/Common/UserPublicProfile.vue')
         }
       ]
     },
@@ -90,6 +105,11 @@ const router = createRouter({
           component: () => import('@/views/Landlord/LandlordHouses.vue')
         },
         {
+          path: 'house/:id',
+          name: 'LandlordHouseDetail',
+          component: () => import('@/views/Landlord/LandlordHouseDetail.vue')
+        },
+        {
           path: 'orders',
           name: 'LandlordOrders',
           component: () => import('@/views/Landlord/LandlordOrders.vue')
@@ -105,14 +125,29 @@ const router = createRouter({
           component: () => import('@/views/Landlord/LandlordAppointments.vue')
         },
         {
+          path: 'chat',
+          name: 'LandlordChat',
+          component: () => import('@/views/Landlord/LandlordChat.vue')
+        },
+        {
           path: 'notifications',
           name: 'LandlordNotifications',
           component: () => import('@/views/Landlord/LandlordNotifications.vue')
         },
         {
+          path: 'reviews',
+          name: 'LandlordReviews',
+          component: () => import('@/views/Landlord/LandlordReviews.vue')
+        },
+        {
           path: 'profile',
           name: 'LandlordProfile',
           component: () => import('@/views/Landlord/LandlordProfile.vue')
+        },
+        {
+          path: 'user/:id',
+          name: 'LandlordUserProfile',
+          component: () => import('@/views/Common/UserPublicProfile.vue')
         }
       ]
     },
@@ -133,14 +168,14 @@ const router = createRouter({
           component: () => import('@/views/Admin/AdminUsers.vue')
         },
         {
+          path: 'houses',
+          name: 'AdminHouses',
+          component: () => import('@/views/Admin/AdminHouses.vue')
+        },
+        {
           path: 'verify',
           name: 'AdminVerify',
           component: () => import('@/views/Admin/AdminVerify.vue')
-        },
-        {
-          path: 'reports',
-          name: 'AdminReports',
-          component: () => import('@/views/Admin/AdminReports.vue')
         },
         {
           path: 'announcements',

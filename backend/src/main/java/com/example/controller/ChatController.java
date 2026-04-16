@@ -22,7 +22,7 @@ public class ChatController {
     public Result<Conversation> createConversation(@RequestParam Integer user1Id,
                                                    @RequestParam Integer user2Id,
                                                    @RequestParam(required = false) Integer houseId,
-                                                   @RequestParam Integer type) {
+                                                   @RequestParam(defaultValue = "0") Integer type) {
         return Result.success(chatService.createConversation(user1Id, user2Id, houseId, type));
     }
 
@@ -34,13 +34,23 @@ public class ChatController {
     @GetMapping("/messages/{conversationId}")
     public Result<Page<ChatMessage>> getMessages(@PathVariable Integer conversationId,
                                                  @RequestParam(defaultValue = "1") Integer page,
-                                                 @RequestParam(defaultValue = "20") Integer size) {
+                                                 @RequestParam(defaultValue = "50") Integer size) {
         return Result.success(chatService.getMessages(conversationId, page, size));
+    }
+
+    @PostMapping("/send")
+    public Result<ChatMessage> sendMessage(@RequestBody ChatMessage message) {
+        return Result.success(chatService.sendMessage(message));
     }
 
     @PutMapping("/read/{conversationId}")
     public Result<String> markAsRead(@PathVariable Integer conversationId, @RequestParam Integer userId) {
         chatService.markAsRead(conversationId, userId);
         return Result.success("已读");
+    }
+
+    @GetMapping("/unread")
+    public Result<Integer> getUnreadCount(@RequestParam Integer userId) {
+        return Result.success(chatService.getUnreadCount(userId));
     }
 }

@@ -4,6 +4,9 @@ server:
 
 #配置spring框架
 spring:
+  jackson:
+    time-zone: Asia/Shanghai
+    date-format: yyyy-MM-dd HH:mm:ss
   application:
     name: houserental #应用名称
   mail:
@@ -31,6 +34,12 @@ spring:
 # 文件上传目录
 file:
   upload-dir: D:/upload
+
+# AI 大模型配置
+ai:
+  api-key: sk-d551d54e75a1470b95eedc46ecf44980
+  model: qwen-plus
+  base-url: https://dashscope.aliyuncs.com/compatible-mode/v1
 
 mybatis-plus:
   configuration:

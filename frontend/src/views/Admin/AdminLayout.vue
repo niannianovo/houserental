@@ -21,13 +21,13 @@
                     <el-icon><User /></el-icon>
                     <template #title>用户管理</template>
                 </el-menu-item>
+                <el-menu-item index="/admin/houses">
+                    <el-icon><House /></el-icon>
+                    <template #title>房源管理</template>
+                </el-menu-item>
                 <el-menu-item index="/admin/verify">
                     <el-icon><CircleCheck /></el-icon>
                     <template #title>房源审核</template>
-                </el-menu-item>
-                <el-menu-item index="/admin/reports">
-                    <el-icon><Warning /></el-icon>
-                    <template #title>举报管理</template>
                 </el-menu-item>
                 <el-menu-item index="/admin/announcements">
                     <el-icon><Notification /></el-icon>
@@ -69,7 +69,7 @@ import { ref, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAdminStore } from '@/stores/user'
 import { ElMessage } from 'element-plus'
-import { Odometer, User, CircleCheck, Warning, Notification, Fold, Expand, ArrowDown } from '@element-plus/icons-vue'
+import { Odometer, User, House, CircleCheck, Notification, Fold, Expand, ArrowDown } from '@element-plus/icons-vue'
 
 const router = useRouter()
 const route = useRoute()
