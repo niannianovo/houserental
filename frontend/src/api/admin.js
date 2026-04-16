@@ -18,9 +18,9 @@ export function disableUser(id) {
 export function enableUser(id) {
     return httpInstance({ url: `/admin/user/enable/${id}`, method: 'put' })
 }
-export function deleteUser(id) {
-    return httpInstance({ url: `/admin/user/${id}`, method: 'delete' })
-}
+// export function deleteUser(id) {
+//     return httpInstance({ url: `/admin/user/${id}`, method: 'delete' })
+// }
 
 // ========== 房源审核 ==========
 export function getPendingHouses(page = 1, size = 10) {

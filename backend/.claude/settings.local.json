@@ -29,7 +29,10 @@
       "Bash(mvn -q compile)",
       "Bash(mvn -q compile -DskipTests)",
       "Bash(mvn clean *)",
-      "Bash(grep -E \"\\\\.\\(vue|js\\)$\")"
+      "Bash(grep -E \"\\\\.\\(vue|js\\)$\")",
+      "Bash(bc)",
+      "Bash(python3 *)",
+      "Bash(python *)"
     ]
   }
 }

@@ -14,4 +14,5 @@ public interface UserService {
     void bindEmail(Integer userId, String email, String code);
     User getProfile(Integer userId);
     User switchRole(Integer userId, Integer role);
+    void checkUserStatus(Integer userId);
 }

@@ -276,4 +276,15 @@ public class UserServiceImpl implements UserService {
         user.setPassword(null);
         return user;
     }
+
+    @Override
+    public void checkUserStatus(Integer userId){
+        User user = userMapper.selectById(userId);
+        if(user == null){
+            throw new RuntimeException("用户不存在");
+        }
+        if (user.getStatus() != null && user.getStatus() == 1){
+            throw new RuntimeException("账号已被禁用，无法操作");
+        }
+    }
 }

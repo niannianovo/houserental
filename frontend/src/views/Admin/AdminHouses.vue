@@ -158,7 +158,7 @@ const handleTakedown = async (row) => {
         const { value: reason } = await ElMessageBox.prompt('请输入下架原因（可选）', '强制下架房源', {
             confirmButtonText: '确认下架',
             cancelButtonText: '取消',
-            inputPlaceholder: '如：房源信息不实、被举报等',
+            inputPlaceholder: '如：房源信息不实等',
             type: 'warning'
         })
         await adminTakedownHouse(row.id, reason || '')

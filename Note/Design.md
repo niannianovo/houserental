@@ -263,18 +263,7 @@ int distance = Long.bitCount(hash1 ^ hash2); // 一行代码
 - 可通过用户公开主页查看某用户收到的所有评价
 
 
-### 3.9 拉黑功能
-
-租户和房东可以相互拉黑。
-
-**拉黑效果：**
-- 无法给对方发消息（发送时校验）
-- 无法预约对方的房源
-- 无法评价对方
-- 会话列表中标记为「已屏蔽」
-- 可在设置中查看黑名单并解除
-
-### 3.10 房源备注
+### 3.9 房源备注
 
 用户可对任意房源添加私密备注，仅自己可见。每个用户对每个房源只有一条备注（user_id + house_id 联合唯一，新增或覆盖更新）。前端集成在房源详情页内嵌，支持添加/编辑/删除。
 
@@ -675,16 +664,7 @@ ai:
 | status | tinyint | 状态（0正常 1已删除） |
 | create_time | datetime | 创建时间 |
 
-### 4.9 user_block（拉黑表）
-
-| 字段 | 类型 | 说明 |
-|------|------|------|
-| id | int | 主键 |
-| user_id | int | 拉黑发起人 |
-| blocked_user_id | int | 被拉黑的人 |
-| create_time | datetime | 创建时间 |
-
-### 4.10 user_preference（用户偏好表）
+### 4.9 user_preference（用户偏好表）
 
 | 字段 | 类型 | 说明 |
 |------|------|------|
@@ -947,15 +927,7 @@ ai:
 | GET | `/user-review/my-sent` | 我发出的评价 |
 | GET | `/user-review/my-received` | 我收到的评价 |
 
-### 5.10 拉黑
-
-| 方法 | 路径 | 说明 |
-|------|------|------|
-| POST | `/block/{userId}` | 拉黑 |
-| DELETE | `/block/{userId}` | 取消拉黑 |
-| GET | `/block/list` | 黑名单 |
-
-### 5.11 推荐
+### 5.10 推荐
 
 | 方法 | 路径 | 说明 |
 |------|------|------|
@@ -1028,7 +1000,6 @@ com.example
 │   ├── UserController.java
 │   ├── HouseController.java
 │   ├── VerifyController.java                房源审核
-│   ├── ReportController.java
 │   ├── FavoriteController.java
 │   ├── AppointmentController.java
 │   ├── ChatController.java
@@ -1039,7 +1010,6 @@ com.example
 │   ├── HouseCommentController.java
 │   ├── HouseNoteController.java
 │   ├── UserReviewController.java
-│   ├── BlockController.java
 │   ├── RecommendController.java
 │   ├── NotificationController.java
 │   ├── AnnouncementController.java
@@ -1062,7 +1032,6 @@ com.example
 │   ├── HouseComment.java
 │   ├── HouseNote.java
 │   ├── UserReview.java
-│   ├── UserBlock.java
 │   ├── UserPreference.java
 │   ├── SearchHistory.java
 │   ├── Conversation.java
@@ -1071,7 +1040,6 @@ com.example
 │   ├── RentalOrder.java
 │   ├── RentalOrderLog.java
 │   ├── RentPayment.java
-│   ├── Report.java
 │   ├── Notification.java
 │   ├── Announcement.java
 │   └── AdminLog.java
@@ -1084,7 +1052,6 @@ com.example
 │   ├── HouseService.java
 │   ├── ImageVerifyService.java             图片鉴别服务
 │   ├── VerifyService.java                  房源审核服务
-│   ├── ReportService.java
 │   ├── FavoriteService.java
 │   ├── AppointmentService.java
 │   ├── ChatService.java
@@ -1095,7 +1062,6 @@ com.example
 │   ├── HouseCommentService.java
 │   ├── HouseNoteService.java
 │   ├── UserReviewService.java
-│   ├── BlockService.java
 │   ├── RecommendService.java
 │   ├── NotificationService.java
 │   ├── AnnouncementService.java

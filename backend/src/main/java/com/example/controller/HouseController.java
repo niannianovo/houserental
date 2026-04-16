@@ -3,6 +3,7 @@ package com.example.controller;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.example.common.Result;
 import com.example.entity.House;
+import com.example.service.UserService;
 import com.example.service.HouseService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,9 +15,12 @@ import org.springframework.web.bind.annotation.*;
 public class HouseController {
     @Autowired
     private HouseService houseService;
+    @Autowired
+    private UserService userService;
 
     @PostMapping
     public Result<String> publish(@RequestBody House house) {
+        userService.checkUserStatus(house.getOwnerId());
         houseService.publish(house);
         return Result.success("发布成功");
     }
@@ -46,6 +50,7 @@ public class HouseController {
 
     @PutMapping("/{id}")
     public Result<String> update(@PathVariable Integer id, @RequestBody House house) {
+        userService.checkUserStatus(house.getOwnerId());
         house.setId(id);
         houseService.update(house);
         return Result.success("修改成功");
@@ -53,6 +58,7 @@ public class HouseController {
 
     @DeleteMapping("/{id}")
     public Result<String> delete(@PathVariable Integer id, @RequestParam Integer ownerId) {
+        userService.checkUserStatus(ownerId);
         houseService.delete(id, ownerId);
         return Result.success("删除成功");
     }

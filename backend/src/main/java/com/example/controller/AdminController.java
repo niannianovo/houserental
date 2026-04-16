@@ -78,7 +78,11 @@ public class AdminController {
                       .in(RentalOrder::getStatus, Arrays.asList(0, 6));
         List<RentalOrder> pendingOrders = rentalOrderMapper.selectList(pendingWrapper);
         for (RentalOrder order : pendingOrders) {
-            order.setStatus(7); // 已拒绝
+            if(order.getStatus() == 0) {
+                order.setStatus(7); // 已拒绝
+            }else if (order.getStatus() == 6){
+                order.setStatus(8); // 已取消
+            }
             rentalOrderMapper.updateById(order);
             Integer targetId = id.equals(order.getTenantId()) ? order.getOwnerId() : order.getTenantId();
             String msg = "由于对方账号已被管理员禁用，租约(ID:" + order.getId() + ")已自动取消。";
@@ -119,12 +123,12 @@ public class AdminController {
         return Result.success("已启用");
     }
 
-    @DeleteMapping("/user/{id}")
-    public Result<String> deleteUser(@PathVariable Integer id) {
-        userMapper.deleteById(id);
-        log.info("【删除用户】用户ID:{}", id);
-        return Result.success("已删除");
-    }
+//    @DeleteMapping("/user/{id}")
+//    public Result<String> deleteUser(@PathVariable Integer id) {
+//        userMapper.deleteById(id);
+//        log.info("【删除用户】用户ID:{}", id);
+//        return Result.success("已删除");
+//    }
 
     @DeleteMapping("/comment/{id}")
     public Result<String> deleteComment(@PathVariable Integer id, @RequestParam Integer adminId) {

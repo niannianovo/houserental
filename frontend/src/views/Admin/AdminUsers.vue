@@ -4,7 +4,8 @@
             <template #header>
                 <div style="display: flex; justify-content: space-between; align-items: center;">
                     <span>用户管理</span>
-                    <el-input v-model="keyword" placeholder="搜索账号/昵称/手机" clearable style="width: 240px;" @keyup.enter="handleSearch">
+                    <el-input v-model="keyword" placeholder="搜索账号/昵称/手机" clearable style="width: 240px;"
+                        @keyup.enter="handleSearch">
                         <template #append><el-button @click="handleSearch">搜索</el-button></template>
                     </el-input>
                 </div>
@@ -26,32 +27,29 @@
                 <el-table-column prop="createTime" label="注册时间" width="160" />
                 <el-table-column label="操作" width="160" fixed="right">
                     <template #default="{ row }">
-                        <el-button v-if="row.status !== 1" type="warning" link size="small" @click="handleDisable(row.id)">禁用</el-button>
+                        <el-button v-if="row.status !== 1" type="warning" link size="small"
+                            @click="handleDisable(row.id)">禁用</el-button>
                         <el-button v-else type="success" link size="small" @click="handleEnable(row.id)">启用</el-button>
-                        <el-popconfirm title="确定删除该用户？" @confirm="handleDelete(row.id)">
+                        <!-- <el-popconfirm title="确定删除该用户？" @confirm="handleDelete(row.id)">
                             <template #reference>
                                 <el-button type="danger" link size="small">删除</el-button>
                             </template>
-                        </el-popconfirm>
+                        </el-popconfirm> -->
                     </template>
                 </el-table-column>
             </el-table>
 
-            <el-pagination
-                v-if="total > 0"
-                style="margin-top: 16px; justify-content: flex-end;"
-                background layout="total, prev, pager, next"
-                :total="total" :page-size="pageSize"
-                v-model:current-page="currentPage"
-                @current-change="loadUsers"
-            />
+            <el-pagination v-if="total > 0" style="margin-top: 16px; justify-content: flex-end;" background
+                layout="total, prev, pager, next" :total="total" :page-size="pageSize" v-model:current-page="currentPage"
+                @current-change="loadUsers" />
         </el-card>
     </div>
 </template>
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import { getUserList, disableUser, enableUser, deleteUser } from '@/api/admin'
+// import { getUserList, disableUser, enableUser, deleteUser } from '@/api/admin'
+import { getUserList, disableUser, enableUser } from '@/api/admin'
 import { ElMessage } from 'element-plus'
 
 const loading = ref(false)
@@ -83,10 +81,10 @@ const handleEnable = async (id) => {
     try { await enableUser(id); ElMessage.success({ message: '已启用', duration: 2000 }); loadUsers() }
     catch (e) { console.log('操作失败', e) }
 }
-const handleDelete = async (id) => {
-    try { await deleteUser(id); ElMessage.success({ message: '已删除', duration: 2000 }); loadUsers() }
-    catch (e) { console.log('删除失败', e) }
-}
+// const handleDelete = async (id) => {
+//     try { await deleteUser(id); ElMessage.success({ message: '已删除', duration: 2000 }); loadUsers() }
+//     catch (e) { console.log('删除失败', e) }
+// }
 
 onMounted(() => loadUsers())
 </script>

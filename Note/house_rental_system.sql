@@ -113,7 +113,7 @@ CREATE TABLE `house_comment` (
     `user_id` INT NOT NULL COMMENT '评论人ID',
     `content` TEXT NOT NULL COMMENT '评论内容',
     `rating` TINYINT NOT NULL DEFAULT 5 COMMENT '评分（1-5星）',
-    `status` TINYINT NOT NULL DEFAULT 0 COMMENT '状态（0正常 1被举报待审核 2已删除）',
+    `status` TINYINT NOT NULL DEFAULT 0 COMMENT '状态（0正常 1已删除）',
     `create_time` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (`id`),
     KEY `idx_house_id` (`house_id`),
@@ -145,7 +145,7 @@ CREATE TABLE `user_review` (
     `reviewer_role` TINYINT NOT NULL COMMENT '评价方向（0租客评房东 1房东评租客）',
     `content` TEXT DEFAULT NULL COMMENT '评价内容',
     `rating` TINYINT NOT NULL DEFAULT 5 COMMENT '评分（1-5星）',
-    `status` TINYINT NOT NULL DEFAULT 0 COMMENT '状态（0正常 1被举报待审核 2已删除）',
+    `status` TINYINT NOT NULL DEFAULT 0 COMMENT '状态（0正常 1已删除）',
     `create_time` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (`id`),
     UNIQUE KEY `uk_order_reviewer` (`order_id`, `reviewer_id`),
@@ -153,19 +153,7 @@ CREATE TABLE `user_review` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='用户互评表';
 
 -- -------------------------------------------
--- 9. 拉黑表
--- -------------------------------------------
-CREATE TABLE `user_block` (
-    `id` INT NOT NULL AUTO_INCREMENT,
-    `user_id` INT NOT NULL COMMENT '拉黑发起人',
-    `blocked_user_id` INT NOT NULL COMMENT '被拉黑的人',
-    `create_time` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    PRIMARY KEY (`id`),
-    UNIQUE KEY `uk_user_blocked` (`user_id`, `blocked_user_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='拉黑表';
-
--- -------------------------------------------
--- 10. 用户偏好表
+-- 9. 用户偏好表
 -- -------------------------------------------
 CREATE TABLE `user_preference` (
     `id` INT NOT NULL AUTO_INCREMENT,
