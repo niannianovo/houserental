@@ -33,13 +33,16 @@ public class HouseController {
                                       @RequestParam(required = false) String city,
                                       @RequestParam(required = false) String district,
                                       @RequestParam(required = false) Integer houseType,
+                                      @RequestParam(required = false) Integer roomcount,
+                                      @RequestParam(required = false) Integer hallcount,
                                       @RequestParam(required = false) Integer minPrice,
                                       @RequestParam(required = false) Integer maxPrice,
                                       @RequestParam(required = false) Integer status,
                                       @RequestParam(required = false) Integer verifyStatus,
                                       @RequestParam(defaultValue = "1") Integer page,
                                       @RequestParam(defaultValue = "10") Integer size) {
-        return Result.success(houseService.search(id, keyword, address, province, city, district, houseType, minPrice, maxPrice, status, verifyStatus, page, size));
+        return Result.success(houseService.search(id, keyword, address, province, city, district, houseType,
+         roomcount, hallcount, minPrice, maxPrice, status, verifyStatus, page, size));
     }
 
     @GetMapping("/{id}")

@@ -73,11 +73,12 @@ public class AiServiceImpl implements AiService {
             + "   - minPrice: 最低价格（数字）\n"
             + "   - maxPrice: 最高价格（数字，如果用户说\"2000左右\"，设为1500-2500）\n"
             + "   - houseType: 房屋类型（0=整租，1=合租，没提到就不填）\n"
-            + "   - roomCount: 几室（数字，如\"两居室\"=2）\n\n"
+            + "   - roomCount: 几室（数字，如\"两居室\"=2、\"一室一厅\"=1）\n"
+            + "   - hallCount: 几厅（数字，如\"一室一厅\"=1、\"两室两厅\"=2、\"一室零厅\"=0）\n\n"
             + "2. 同时给出一段友好的回复文字，告诉用户你帮他找了什么条件的房子。\n\n"
             + "请严格按以下JSON格式返回，不要返回其他内容：\n"
             + "{\"reply\": \"回复文字\", \"conditions\": {\"province\": \"\", \"city\": \"\", \"district\": \"\", "
-            + "\"keyword\": \"\", \"minPrice\": null, \"maxPrice\": null, \"houseType\": null, \"roomCount\": null}}\n\n"
+            + "\"keyword\": \"\", \"minPrice\": null, \"maxPrice\": null, \"houseType\": null, \"roomCount\": null, \"hallCount\": null}}\n\n"
             + "注意：\n"
             + "- 只填用户明确提到的条件，没提到的字段设为null或空字符串\n"
             + "- 价格要合理推断区间，比如\"3000左右\"→minPrice:2500,maxPrice:3500\n"
@@ -226,6 +227,8 @@ public class AiServiceImpl implements AiService {
                 c.getString("city"),
                 c.getString("district"),
                 c.getInteger("houseType"),
+                c.getInteger("roomCount"),
+                c.getInteger("hallCount"),
                 c.getInteger("minPrice"),
                 c.getInteger("maxPrice"),
                 null, null,
@@ -237,11 +240,15 @@ public class AiServiceImpl implements AiService {
     /**
      * 逐步放宽搜索条件，尝试找到相近房源
      *
+     * 约束强度：室数（roomCount）为强约束，始终保留到第4步；厅数（hallCount）为软约束，
+     * 从第2步开始即可放开。
+     *
      * 放宽策略（逐步执行，找到结果即停止）：
-     *   第1步：扩大价格范围（±50%）
-     *   第2步：去掉房屋类型限制（整租/合租不限）
-     *   第3步：去掉区县限制，保留城市
-     *   第4步：同城热门兜底
+     *   第1步：扩大价格范围（±50%），其他条件全部保留
+     *   第2步：放开"厅数"限制，保留原价格和其他条件
+     *   第3步：放开"厅数"+"租赁方式"，扩大价格范围（仍保留室数）
+     *   第4步：去掉区县限制，扩大到全城（仍保留室数）
+     *   第5步：同城热门兜底（去掉所有条件，只保留城市）
      *
      * @param c      AI 解析出的原始搜索条件
      * @param result  结果Map，放宽后找到的房源会写入 result["houses"]
@@ -251,45 +258,56 @@ public class AiServiceImpl implements AiService {
         Integer minPrice = c.getInteger("minPrice");
         Integer maxPrice = c.getInteger("maxPrice");
         Integer houseType = c.getInteger("houseType");
+        Integer roomCount = c.getInteger("roomCount");
+        Integer hallCount = c.getInteger("hallCount");
         String province = c.getString("province");
         String city = c.getString("city");
         String district = c.getString("district");
         String keyword = c.getString("keyword");
 
-        // 第1步：扩大价格范围（最低价×0.5，最高价×1.5）
+        // 第1步：扩大价格范围（最低价×0.5，最高价×1.5），保留室数和厅数
         if (minPrice != null || maxPrice != null) {
             Integer relaxMin = minPrice != null ? (int)(minPrice * 0.5) : null;
             Integer relaxMax = maxPrice != null ? (int)(maxPrice * 1.5) : null;
-            List<House> houses = doSearch(keyword, province, city, district, houseType, relaxMin, relaxMax);
+            List<House> houses = doSearch(keyword, province, city, district, houseType, roomCount, hallCount, relaxMin, relaxMax);
             if (!houses.isEmpty()) {
                 result.put("houses", houses);
                 return "没有找到该价位的房源，已为您扩大价格范围，推荐以下相近房源：";
             }
         }
 
-        // 第2步：去掉房屋类型限制
-        if (houseType != null) {
-            Integer relaxMin = minPrice != null ? (int)(minPrice * 0.5) : null;
-            Integer relaxMax = maxPrice != null ? (int)(maxPrice * 1.5) : null;
-            List<House> houses = doSearch(keyword, province, city, district, null, relaxMin, relaxMax);
+        // 第2步：放开"厅数"限制（室数为强约束，厅数可调），保留原价格
+        if (hallCount != null) {
+            List<House> houses = doSearch(keyword, province, city, district, houseType, roomCount, null, minPrice, maxPrice);
             if (!houses.isEmpty()) {
                 result.put("houses", houses);
-                return "没有找到完全匹配的房源，已为您放宽价格和类型条件，推荐以下相近房源：";
+                return "没有找到完全匹配的户型，已为您放宽厅数条件，推荐相同室数的房源：";
             }
         }
 
-        // 第3步：去掉区县限制，保留城市级别
+        // 第3步：放开"厅数"+"租赁方式"，扩大价格范围（仍保留室数）
+        if (houseType != null || hallCount != null || minPrice != null || maxPrice != null) {
+            Integer relaxMin = minPrice != null ? (int)(minPrice * 0.5) : null;
+            Integer relaxMax = maxPrice != null ? (int)(maxPrice * 1.5) : null;
+            List<House> houses = doSearch(keyword, province, city, district, null, roomCount, null, relaxMin, relaxMax);
+            if (!houses.isEmpty()) {
+                result.put("houses", houses);
+                return "没有找到完全匹配的房源，已为您放宽价格、租赁方式和厅数，推荐以下相近房源：";
+            }
+        }
+
+        // 第4步：去掉区县限制，扩大到全城（仍保留室数）
         if (district != null && !district.isEmpty()) {
-            List<House> houses = doSearch(keyword, province, city, null, null, null, null);
+            List<House> houses = doSearch(keyword, province, city, null, null, roomCount, null, null, null);
             if (!houses.isEmpty()) {
                 result.put("houses", houses);
                 return "该区域暂无匹配房源，已为您扩大到全城范围，推荐以下房源：";
             }
         }
 
-        // 第4步：同城热门兜底（去掉所有条件，只保留城市）
+        // 第5步：同城热门兜底（去掉所有条件，只保留城市）
         if (city != null && !city.isEmpty()) {
-            List<House> houses = doSearch(null, province, city, null, null, null, null);
+            List<House> houses = doSearch(null, province, city, null, null, null, null, null, null);
             if (!houses.isEmpty()) {
                 result.put("houses", houses);
                 return "暂未找到符合条件的房源，为您推荐" + city + "的热门房源：";
@@ -303,9 +321,10 @@ public class AiServiceImpl implements AiService {
      * 简化的搜索调用（封装 houseService.search 参数）
      */
     private List<House> doSearch(String keyword, String province, String city, String district,
-                                 Integer houseType, Integer minPrice, Integer maxPrice) {
+                                 Integer houseType, Integer roomCount, Integer hallCount,
+                                 Integer minPrice, Integer maxPrice) {
         Page<House> page = houseService.search(null, keyword, null, province, city, district,
-                houseType, minPrice, maxPrice, null, null, 1, 6);
+                houseType, roomCount, hallCount, minPrice, maxPrice, null, null, 1, 6);
         return page.getRecords();
     }
 }

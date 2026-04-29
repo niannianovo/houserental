@@ -32,7 +32,14 @@
       "Bash(grep -E \"\\\\.\\(vue|js\\)$\")",
       "Bash(bc)",
       "Bash(python3 *)",
-      "Bash(python *)"
+      "Bash(python *)",
+      "Bash(pdftotext -v)",
+      "Bash(pdftotext -layout \"D:/new/V3基于React和Springboot的跳蚤市场系统的设计与实现-张美.pdf\" \"D:/new/paper.txt\")",
+      "Bash(grep -c \"^$\" \"D:/new/第二章_相关技术.md\")",
+      "Bash(grep -v \"^$\" \"D:/new/第二章_相关技术.md\")",
+      "Bash(where.exe chrome.exe)",
+      "Bash(where.exe msedge.exe)",
+      "Bash(pip install *)"
     ]
   }
 }

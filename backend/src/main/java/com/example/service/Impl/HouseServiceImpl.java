@@ -145,7 +145,9 @@ public class HouseServiceImpl implements HouseService {
 
     @Override
     public Page<House> search(Integer id, String keyword, String address, String province, String city, String district,
-                              Integer houseType, Integer minPrice, Integer maxPrice, Integer status, Integer verifyStatus,
+                              Integer houseType, Integer roomCount, Integer hallCount,
+                              Integer minPrice, Integer maxPrice, Integer status,
+                              Integer verifyStatus,
                               Integer page, Integer size) {
         Page<House> pageParam = new Page<>(page, size);
         LambdaQueryWrapper<House> wrapper = new LambdaQueryWrapper<>();
@@ -183,6 +185,12 @@ public class HouseServiceImpl implements HouseService {
         }
         if (houseType != null) {
             wrapper.eq(House::getHouseType, houseType);
+        }
+        if (roomCount != null) {
+            wrapper.eq(House::getRoomCount, roomCount);
+        }
+        if (hallCount != null) {
+            wrapper.eq(House::getHallCount, hallCount);
         }
         if (minPrice != null) {
             wrapper.ge(House::getPrice, minPrice);
